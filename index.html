@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Malayalam Trace | Final Grid Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>Malayalam Trace | Guaranteed Layout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&family=Noto+Sans+Malayalam:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+Malayalam:wght@700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --primary: #6366f1; --success: #10b981; }
-        
-        /* Force body to be exactly the viewport size and center everything */
+        /* BASE RESET - Forcing full screen */
+        * { box-sizing: border-box; }
         html, body { 
             margin: 0; padding: 0; 
-            height: 100vh; width: 100vw; 
+            width: 100vw; height: 100vh; 
             overflow: hidden; 
+            font-family: 'Outfit', sans-serif;
             background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
-            display: flex; align-items: center; justify-content: center;
         }
 
+        /* CENTERED APP WRAPPER */
         #app {
             width: 100%; height: 100%;
             display: flex; flex-direction: column;
@@ -28,48 +27,71 @@
 
         .malayalam-text { font-family: 'Noto Sans Malayalam', sans-serif; }
 
-        /* Grid specific styles to mirror your images */
-        .grid-row {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            gap: 12px;
-            width: 100%;
-            margin-bottom: 12px;
-        }
+        /* WELCOME & CATEGORY SCREENS */
+        .welcome-content { text-align: center; }
+        .title-en { font-size: 4rem; font-weight: 800; color: #4f46e5; margin: 0; }
+        .title-ml { font-size: 3rem; color: #9333ea; margin: 10px 0 40px 0; }
 
-        /* Card dimensions based on image proportions */
-        .letter-card {
-            width: 70px; height: 120px;
-            background: white; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 2px solid transparent; cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        @media (min-width: 1024px) { .letter-card { width: 90px; height: 160px; } }
-        .letter-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .letter-card.completed { border-color: var(--success); background: #f0fdf4; }
-
-        /* Tracing Interface Center Logic */
-        .tracing-container {
-            display: flex; width: 100%; height: 100%;
-            align-items: center; justify-content: space-between;
-            padding: 0 4rem;
-        }
-
-        .sidebar { width: 240px; display: flex; flex-direction: column; gap: 20px; }
-        
         .btn-modern {
-            background: white; color: var(--primary); font-weight: 800;
-            padding: 1.2rem 3rem; border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+            position: relative; background: white; color: #4f46e5; font-weight: 800;
+            padding: 20px 50px; border-radius: 50px; font-size: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             border: none; cursor: pointer; transition: all 0.3s;
-            min-width: 250px; text-align: center; font-size: 1.5rem;
+            min-width: 300px; display: inline-block;
         }
-        .btn-modern:hover { transform: scale(1.05); background: var(--primary); color: white; }
+        .btn-modern:hover { transform: translateY(-5px); background: #4f46e5; color: white; }
 
-        #tracing-canvas { background: white; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        /* GRID GALLERY SCREEN */
+        .gallery-container {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: space-evenly;
+            padding: 20px;
+        }
+
+        /* Grid specific to your images */
+        .grid-wrapper { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .row { display: flex; flex-direction: row; gap: 15px; justify-content: center; }
+
+        .letter-card {
+            width: 80px; height: 140px; 
+            background: white; border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 3px solid transparent; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .letter-card:hover { transform: scale(1.1); border-color: #4f46e5; }
+        .letter-card.completed { border-color: #10b981; background: #f0fdf4; }
+        .letter-card span { font-size: 2.5rem; color: #1f2937; }
+
+        /* TRACING SCREEN LAYOUT */
+        .tracing-view {
+            width: 100%; height: 100%;
+            display: grid;
+            grid-template-columns: 250px 1fr 250px;
+            align-items: center; padding: 0 40px;
+        }
+
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .tool-box { background: white; padding: 25px; border-radius: 30px; shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        
+        #canvas-wrap { position: relative; display: flex; justify-content: center; align-items: center; }
+        canvas { background: white; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+
+        .hidden { display: none !important; }
+
+        /* NEXT BUTTON OVERLAY */
+        #next-overlay {
+            position: absolute; bottom: 30px; left: 50%;
+            transform: translateX(-50%);
+        }
+        .btn-next {
+            background: #10b981; color: white; padding: 15px 40px;
+            border-radius: 50px; font-weight: 800; border: none; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4); animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% { bottom: 30px; } 50% { bottom: 45px; } }
     </style>
 </head>
 <body>
@@ -97,8 +119,8 @@
         view: 'welcome',
         category: null,
         currentLetter: null,
-        completed: JSON.parse(localStorage.getItem('ml_trace_v7')) || [],
-        brushColor: '#6366f1',
+        completed: JSON.parse(localStorage.getItem('ml_trace_v8')) || [],
+        brushColor: '#4f46e5',
         brushSize: 15
     };
 
@@ -113,83 +135,78 @@
 
         if (state.view === 'welcome') {
             app.innerHTML = `
-                <div class="text-center">
-                    <h1 class="text-6xl font-black text-indigo-600 mb-4">Let's Learn Malayalam</h1>
-                    <h2 class="malayalam-text text-5xl text-purple-500 mb-12">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
-                    <button onclick="setView('category')" class="btn-modern">Shall we Begin?</button>
+                <div class="welcome-content">
+                    <h1 class="title-en">Let's Learn Malayalam</h1>
+                    <h2 class="title-ml malayalam-text">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
+                    <button class="btn-modern" onclick="setView('category')">Shall we Begin?</button>
                 </div>
             `;
         }
 
         else if (state.view === 'category') {
             app.innerHTML = `
-                <div class="text-center space-y-8">
-                    <h2 class="text-4xl font-bold text-slate-700">Choose a Category</h2>
-                    <div class="flex flex-col gap-6">
-                        <button onclick="setView('list', {category: 'vowels'})" class="btn-modern">Vowels / സ്വരാക്ഷരങ്ങൾ</button>
-                        <button onclick="setView('list', {category: 'consonants'})" class="btn-modern">Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ</button>
+                <div class="welcome-content">
+                    <h1 class="title-en" style="font-size: 3rem; margin-bottom: 40px;">Choose a Category</h1>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <button class="btn-modern" onclick="setView('list', {category: 'vowels'})">Vowels / സ്വരാക്ഷരങ്ങൾ</button>
+                        <button class="btn-modern" onclick="setView('list', {category: 'consonants'})">Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ</button>
                     </div>
                 </div>
             `;
         }
 
         else if (state.view === 'list') {
-            const title = state.category === 'vowels' ? 'Vowels / സ്വരാക്ഷരങ്ങൾ' : 'Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ';
             app.innerHTML = `
-                <div class="flex flex-col items-center justify-between h-full py-10 w-full">
-                    <h2 class="text-4xl font-black text-indigo-600 malayalam-text">${title}</h2>
-                    
-                    <div class="w-full">
+                <div class="gallery-container">
+                    <h1 class="title-en" style="font-size: 2.5rem;">${state.category.toUpperCase()}</h1>
+                    <div class="grid-wrapper">
                         ${DATA[state.category].map(row => `
-                            <div class="grid-row">
+                            <div class="row">
                                 ${row.map(char => `
-                                    <div onclick="setView('tracing', {currentLetter: '${char}'})" 
-                                         class="letter-card ${state.completed.includes(char) ? 'completed' : ''}">
-                                        <span class="text-4xl malayalam-text text-slate-800">${char}</span>
+                                    <div class="letter-card ${state.completed.includes(char) ? 'completed' : ''}" onclick="setView('tracing', {currentLetter: '${char}'})">
+                                        <span class="malayalam-text">${char}</span>
                                     </div>
                                 `).join('')}
                             </div>
                         `).join('')}
                     </div>
-
-                    <button onclick="setView('category')" class="btn-modern !text-lg !py-3">Back</button>
+                    <button class="btn-modern" style="min-width: 150px; font-size: 1rem; padding: 10px 30px;" onclick="setView('category')">BACK</button>
                 </div>
             `;
         }
 
         else if (state.view === 'tracing') {
             app.innerHTML = `
-                <div class="tracing-container">
+                <div class="tracing-view">
                     <div class="sidebar">
-                        <div class="bg-white p-6 rounded-3xl shadow-lg">
-                            <label class="text-xs font-bold text-slate-400 block mb-4">PEN SIZE</label>
-                            <input type="range" min="5" max="40" value="${state.brushSize}" class="w-full" oninput="state.brushSize=parseInt(this.value)">
-                            <label class="text-xs font-bold text-slate-400 block mt-8 mb-4">PEN COLOR</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                ${['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#000000', '#a855f7'].map(c => `
-                                    <div onclick="state.brushColor='${c}'" class="w-10 h-10 rounded-lg cursor-pointer border-2 border-white shadow-sm" style="background:${c}"></div>
+                        <div class="tool-box">
+                            <p style="font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin-bottom: 15px;">BRUSH SIZE</p>
+                            <input type="range" min="5" max="40" value="${state.brushSize}" style="width: 100%" oninput="state.brushSize=parseInt(this.value)">
+                            <p style="font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin: 25px 0 15px 0;">BRUSH COLOR</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                ${['#4f46e5', '#ef4444', '#10b981', '#f59e0b', '#000000', '#7c3aed'].map(c => `
+                                    <div onclick="state.brushColor='${c}'" style="background:${c}; height: 40px; border-radius: 10px; cursor: pointer; border: 2px solid white;"></div>
                                 `).join('')}
                             </div>
                         </div>
                     </div>
 
-                    <div class="relative flex-1 flex items-center justify-center">
+                    <div id="canvas-wrap">
                         <canvas id="tracing-canvas"></canvas>
                         <canvas id="ref-canvas" class="hidden"></canvas>
-                        <div id="next-overlay" class="absolute bottom-10 hidden">
-                             <button onclick="handleNext()" class="bg-emerald-500 text-white px-12 py-4 rounded-full font-bold shadow-xl animate-bounce">Next Letter</button>
+                        <div id="next-overlay" class="hidden">
+                            <button class="btn-next" onclick="handleNext()">NEXT LETTER →</button>
                         </div>
                     </div>
 
                     <div class="sidebar">
-                        <button onclick="setView('list')" class="btn-modern !text-lg !py-4 !min-w-full">Gallery</button>
-                        <button onclick="initCanvas()" class="btn-modern !text-lg !py-4 !min-w-full">Retry</button>
+                        <button class="btn-modern" style="min-width: 100%;" onclick="setView('list')">GALLERY</button>
+                        <button class="btn-modern" style="min-width: 100%;" onclick="initCanvas()">RETRY</button>
                     </div>
                 </div>
             `;
             setTimeout(initCanvas, 50);
         }
-        lucide.createIcons();
     }
 
     let ctx, refCtx, canvas, refCanvas, drawing = false, totalPixels = 0;
@@ -198,12 +215,15 @@
         canvas = document.getElementById('tracing-canvas');
         if(!canvas) return;
         refCanvas = document.getElementById('ref-canvas');
-        const size = Math.min(window.innerWidth * 0.5, window.innerHeight * 0.7);
+        
+        const size = Math.min(window.innerWidth * 0.45, window.innerHeight * 0.75);
         canvas.width = canvas.height = refCanvas.width = refCanvas.height = size;
+        
         ctx = canvas.getContext('2d', { willReadFrequently: true });
         refCtx = refCanvas.getContext('2d', { willReadFrequently: true });
 
         const char = state.currentLetter;
+        
         refCtx.fillStyle = "black";
         refCtx.font = `bold ${size * 0.75}px 'Noto Sans Malayalam'`;
         refCtx.textAlign = "center";
@@ -252,10 +272,10 @@
         let filled = 0;
         for(let i=3; i<ref.length; i+=4) if(ref[i] > 0 && current[i] > 0) filled++;
         
-        if((filled/totalPixels) > 0.8) {
+        if((filled/totalPixels) > 0.82) {
             if(!state.completed.includes(state.currentLetter)) {
                 state.completed.push(state.currentLetter);
-                localStorage.setItem('ml_trace_v7', JSON.stringify(state.completed));
+                localStorage.setItem('ml_trace_v8', JSON.stringify(state.completed));
             }
             confetti();
             document.getElementById('next-overlay').classList.remove('hidden');
