@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Malayalam Trace | Guaranteed Layout</title>
+    <title>Malayalam Trace | Final Stabilized</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&family=Noto+Sans+Malayalam:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        /* BASE RESET - Forcing full screen */
         * { box-sizing: border-box; }
         html, body { 
             margin: 0; padding: 0; 
@@ -18,80 +17,63 @@
             background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
         }
 
-        /* CENTERED APP WRAPPER */
-        #app {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-        }
-
+        #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .malayalam-text { font-family: 'Noto Sans Malayalam', sans-serif; }
 
-        /* WELCOME & CATEGORY SCREENS */
-        .welcome-content { text-align: center; }
-        .title-en { font-size: 4rem; font-weight: 800; color: #4f46e5; margin: 0; }
-        .title-ml { font-size: 3rem; color: #9333ea; margin: 10px 0 40px 0; }
-
+        /* BUTTON ANIMATION FIXED */
         .btn-modern {
             position: relative; background: white; color: #4f46e5; font-weight: 800;
             padding: 20px 50px; border-radius: 50px; font-size: 1.5rem;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: none; cursor: pointer; transition: all 0.3s;
-            min-width: 300px; display: inline-block;
+            border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 320px; height: 80px; overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
-        .btn-modern:hover { transform: translateY(-5px); background: #4f46e5; color: white; }
-
-        /* GRID GALLERY SCREEN */
-        .gallery-container {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: space-evenly;
-            padding: 20px;
+        .btn-modern .en-txt, .btn-modern .ml-txt {
+            position: absolute; width: 100%; transition: transform 0.4s ease; text-align: center;
         }
+        .btn-modern .ml-txt { transform: translateY(100px); }
+        .btn-modern:hover { transform: scale(1.05); background: #4f46e5; color: white; }
+        .btn-modern:hover .en-txt { transform: translateY(-100px); }
+        .btn-modern:hover .ml-txt { transform: translateY(0); }
 
-        /* Grid specific to your images */
-        .grid-wrapper { display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        .row { display: flex; flex-direction: row; gap: 15px; justify-content: center; }
+        /* GRID LAYOUT */
+        .gallery-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; }
+        .grid-wrapper { display: flex; flex-direction: column; gap: 15px; }
+        .row { display: flex; flex-direction: row; gap: 12px; justify-content: center; }
 
         .letter-card {
-            width: 80px; height: 140px; 
-            background: white; border-radius: 15px;
+            width: 75px; height: 130px; background: white; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border: 3px solid transparent; cursor: pointer;
-            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 3px solid transparent; cursor: pointer; transition: all 0.2s;
         }
+        @media (min-width: 1024px) { .letter-card { width: 90px; height: 160px; } }
         .letter-card:hover { transform: scale(1.1); border-color: #4f46e5; }
         .letter-card.completed { border-color: #10b981; background: #f0fdf4; }
-        .letter-card span { font-size: 2.5rem; color: #1f2937; }
+        .letter-card span { font-size: 2.5rem; }
 
-        /* TRACING SCREEN LAYOUT */
+        /* TRACING SCREEN FIXED */
         .tracing-view {
-            width: 100%; height: 100%;
-            display: grid;
-            grid-template-columns: 250px 1fr 250px;
-            align-items: center; padding: 0 40px;
+            width: 100%; height: 100%; display: grid;
+            grid-template-columns: 280px 1fr 280px; align-items: center; padding: 0 40px;
         }
-
-        .sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .tool-box { background: white; padding: 25px; border-radius: 30px; shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; height: auto; }
+        .tool-box { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
-        #canvas-wrap { position: relative; display: flex; justify-content: center; align-items: center; }
+        #canvas-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
         canvas { background: white; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
 
         .hidden { display: none !important; }
 
-        /* NEXT BUTTON OVERLAY */
+        /* NEXT BUTTON OVERLAY FIXED */
         #next-overlay {
-            position: absolute; bottom: 30px; left: 50%;
-            transform: translateX(-50%);
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 100;
         }
         .btn-next {
-            background: #10b981; color: white; padding: 15px 40px;
+            background: #10b981; color: white; padding: 18px 45px;
             border-radius: 50px; font-weight: 800; border: none; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4); animation: bounce 2s infinite;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-size: 1.2rem;
         }
-        @keyframes bounce { 0%, 100% { bottom: 30px; } 50% { bottom: 45px; } }
+        .btn-next:hover { background: #059669; transform: scale(1.05); transition: 0.2s; }
     </style>
 </head>
 <body>
@@ -100,26 +82,15 @@
 
 <script>
     const DATA = {
-        vowels: [
-            ['അ', 'ആ', 'ഇ', 'ഈ', 'ഉ', 'ഊ', 'ഋ', 'എ'],
-            ['ഏ', 'ഐ', 'ഒ', 'ഓ', 'ഔ', 'അം', 'അഃ']
-        ],
-        consonants: [
-            ['ക', 'ഖ', 'ഗ', 'ഘ', 'ങ'],
-            ['ച', 'ഛ', 'ജ', 'ഝ', 'ഞ'],
-            ['ട', 'ഠ', 'ഡ', 'ഢ', 'ണ'],
-            ['ത', 'ഥ', 'ദ', 'ധ', 'ന'],
-            ['പ', 'ഫ', 'ബ', 'ഭ', 'മ'],
-            ['യ', 'ര', 'ല', 'വ', 'ശ'],
-            ['ഷ', 'സ', 'ഹ', 'ള', 'ഴ', 'റ']
-        ]
+        vowels: [['അ','ആ','ഇ','ഈ','ഉ','ഊ','ഋ','എ'], ['ഏ','ഐ','ഒ','ഓ','ഔ','അം','അഃ']],
+        consonants: [['ക','ഖ','ഗ','ഘ','ങ'],['ച','ഛ','ജ','ഝ','ഞ'],['ട','ഠ','ഡ','ഢ','ണ'],['ത','ഥ','ദ','ധ','ന'],['പ','ഫ','ബ','ഭ','മ'],['യ','ര','ല','വ','ശ'],['ഷ','സ','ഹ','ള','ഴ','റ']]
     };
 
     let state = {
         view: 'welcome',
         category: null,
         currentLetter: null,
-        completed: JSON.parse(localStorage.getItem('ml_trace_v8')) || [],
+        completed: JSON.parse(localStorage.getItem('ml_trace_v9')) || [],
         brushColor: '#4f46e5',
         brushSize: 15
     };
@@ -135,21 +106,30 @@
 
         if (state.view === 'welcome') {
             app.innerHTML = `
-                <div class="welcome-content">
-                    <h1 class="title-en">Let's Learn Malayalam</h1>
-                    <h2 class="title-ml malayalam-text">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
-                    <button class="btn-modern" onclick="setView('category')">Shall we Begin?</button>
+                <div style="text-align: center;">
+                    <h1 style="font-size: 4.5rem; color: #4f46e5; margin: 0;">Let's Learn Malayalam</h1>
+                    <h2 class="malayalam-text" style="font-size: 3.5rem; color: #9333ea; margin: 10px 0 50px 0;">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
+                    <button class="btn-modern" onclick="setView('category')">
+                        <span class="en-txt">Shall we Begin?</span>
+                        <span class="ml-txt malayalam-text">തുടങ്ങാം?</span>
+                    </button>
                 </div>
             `;
         }
 
         else if (state.view === 'category') {
             app.innerHTML = `
-                <div class="welcome-content">
-                    <h1 class="title-en" style="font-size: 3rem; margin-bottom: 40px;">Choose a Category</h1>
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <button class="btn-modern" onclick="setView('list', {category: 'vowels'})">Vowels / സ്വരാക്ഷരങ്ങൾ</button>
-                        <button class="btn-modern" onclick="setView('list', {category: 'consonants'})">Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ</button>
+                <div style="text-align: center;">
+                    <h1 style="font-size: 3rem; color: #374151; margin-bottom: 50px;">Choose a Category</h1>
+                    <div style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
+                        <button class="btn-modern" onclick="setView('list', {category: 'vowels'})">
+                            <span class="en-txt">Vowels</span>
+                            <span class="ml-txt malayalam-text">സ്വരാക്ഷരങ്ങൾ</span>
+                        </button>
+                        <button class="btn-modern" onclick="setView('list', {category: 'consonants'})">
+                            <span class="en-txt">Consonants</span>
+                            <span class="ml-txt malayalam-text">വ്യഞ്ജനാക്ഷരങ്ങൾ</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -158,7 +138,7 @@
         else if (state.view === 'list') {
             app.innerHTML = `
                 <div class="gallery-container">
-                    <h1 class="title-en" style="font-size: 2.5rem;">${state.category.toUpperCase()}</h1>
+                    <h1 class="malayalam-text" style="font-size: 3rem; color: #4f46e5;">${state.category === 'vowels' ? 'സ്വരാക്ഷരങ്ങൾ' : 'വ്യഞ്ജനാക്ഷരങ്ങൾ'}</h1>
                     <div class="grid-wrapper">
                         ${DATA[state.category].map(row => `
                             <div class="row">
@@ -170,7 +150,10 @@
                             </div>
                         `).join('')}
                     </div>
-                    <button class="btn-modern" style="min-width: 150px; font-size: 1rem; padding: 10px 30px;" onclick="setView('category')">BACK</button>
+                    <button class="btn-modern" style="min-width: 200px; height: 60px; font-size: 1.2rem;" onclick="setView('category')">
+                        <span class="en-txt">BACK</span>
+                        <span class="ml-txt malayalam-text">തിരികെ</span>
+                    </button>
                 </div>
             `;
         }
@@ -180,18 +163,18 @@
                 <div class="tracing-view">
                     <div class="sidebar">
                         <div class="tool-box">
-                            <p style="font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin-bottom: 15px;">BRUSH SIZE</p>
+                            <p style="font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin-bottom: 15px; letter-spacing: 1px;">BRUSH SIZE</p>
                             <input type="range" min="5" max="40" value="${state.brushSize}" style="width: 100%" oninput="state.brushSize=parseInt(this.value)">
-                            <p style="font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin: 25px 0 15px 0;">BRUSH COLOR</p>
+                            <p style="font-weight: 800; font-size: 0.7rem; color: #94a3b8; margin: 30px 0 15px 0; letter-spacing: 1px;">BRUSH COLOR</p>
                             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                                 ${['#4f46e5', '#ef4444', '#10b981', '#f59e0b', '#000000', '#7c3aed'].map(c => `
-                                    <div onclick="state.brushColor='${c}'" style="background:${c}; height: 40px; border-radius: 10px; cursor: pointer; border: 2px solid white;"></div>
+                                    <div onclick="state.brushColor='${c}'" style="background:${c}; height: 45px; border-radius: 12px; cursor: pointer; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
                                 `).join('')}
                             </div>
                         </div>
                     </div>
 
-                    <div id="canvas-wrap">
+                    <div id="canvas-container">
                         <canvas id="tracing-canvas"></canvas>
                         <canvas id="ref-canvas" class="hidden"></canvas>
                         <div id="next-overlay" class="hidden">
@@ -200,8 +183,14 @@
                     </div>
 
                     <div class="sidebar">
-                        <button class="btn-modern" style="min-width: 100%;" onclick="setView('list')">GALLERY</button>
-                        <button class="btn-modern" style="min-width: 100%;" onclick="initCanvas()">RETRY</button>
+                        <button class="btn-modern" style="min-width: 100%;" onclick="setView('list')">
+                            <span class="en-txt">GALLERY</span>
+                            <span class="ml-txt malayalam-text">പട്ടിക</span>
+                        </button>
+                        <button class="btn-modern" style="min-width: 100%;" onclick="initCanvas()">
+                            <span class="en-txt">RETRY</span>
+                            <span class="ml-txt malayalam-text">വീണ്ടും</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -216,7 +205,7 @@
         if(!canvas) return;
         refCanvas = document.getElementById('ref-canvas');
         
-        const size = Math.min(window.innerWidth * 0.45, window.innerHeight * 0.75);
+        const size = Math.min(window.innerWidth * 0.45, window.innerHeight * 0.7);
         canvas.width = canvas.height = refCanvas.width = refCanvas.height = size;
         
         ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -242,9 +231,12 @@
         totalPixels = 0;
         for(let i=3; i<data.length; i+=4) if(data[i]>0) totalPixels++;
 
+        // Important: Reset Next button on retry
+        document.getElementById('next-overlay').classList.add('hidden');
+
         canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; paint(e); };
-        window.onmouseup = window.ontouchend = () => { drawing = false; ctx.beginPath(); checkWin(); };
-        canvas.onmousemove = canvas.ontouchmove = (e) => { e.preventDefault(); paint(e); };
+        window.onmouseup = window.ontouchend = () => { if(drawing) { drawing = false; ctx.beginPath(); checkWin(); } };
+        canvas.onmousemove = canvas.ontouchmove = (e) => { if(drawing) { e.preventDefault(); paint(e); } };
     }
 
     function paint(e) {
@@ -275,10 +267,12 @@
         if((filled/totalPixels) > 0.82) {
             if(!state.completed.includes(state.currentLetter)) {
                 state.completed.push(state.currentLetter);
-                localStorage.setItem('ml_trace_v8', JSON.stringify(state.completed));
+                localStorage.setItem('ml_trace_v9', JSON.stringify(state.completed));
             }
-            confetti();
+            confetti({ origin: { y: 0.7 } });
             document.getElementById('next-overlay').classList.remove('hidden');
+            
+            // Turn letter green without erasing controls
             ctx.fillStyle = "#10b981";
             ctx.font = `bold ${canvas.width * 0.75}px 'Noto Sans Malayalam'`;
             ctx.textAlign = "center";
