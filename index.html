@@ -3,47 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malayalam Letter Tracing</title>
+    <title>Malayalam Trace | Learn with Fun</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+Malayalam:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Nunito', sans-serif; overflow-x: hidden; }
-        .malayalam-font { font-family: 'Arial', sans-serif; }
-        .transition-all { transition: all 0.3s ease-in-out; }
-        .letter-outline {
-            font-size: 250px;
-            font-weight: bold;
-            fill: none;
-            stroke: #e2e8f0;
-            stroke-width: 2;
-            pointer-events: none;
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
         }
-        .shining-ray:hover::after {
-            content: '';
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            overflow-x: hidden; 
+        }
+        .malayalam-text { font-family: 'Noto Sans Malayalam', sans-serif; }
+        
+        /* Floating Animation for Headings */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        /* Modern Button Styling */
+        .btn-modern {
+            position: relative;
+            background: white;
+            color: var(--primary);
+            font-weight: 800;
+            padding: 1.25rem 2.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            border: 2px solid transparent;
+            min-width: 240px;
+        }
+        .btn-modern:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.5);
+        }
+        .btn-modern .ml-text {
             position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform: rotate(45deg);
-            animation: shine 0.8s;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: top 0.4s;
+            white-space: nowrap;
         }
-        @keyframes shine {
-            0% { left: -100%; }
-            100% { left: 100%; }
+        .btn-modern .en-text {
+            transition: transform 0.4s;
+            display: inline-block;
         }
-        #tracing-canvas { touch-action: none; cursor: crosshair; }
+        .btn-modern:hover .en-text { transform: translateY(-150%); }
+        .btn-modern:hover .ml-text { top: 50%; transform: translate(-50%, -50%); }
+
+        canvas { touch-action: none; cursor: crosshair; }
         .hidden { display: none !important; }
+        
+        .grid-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        .grid-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: white;
+        }
     </style>
 </head>
-<body class="bg-blue-50 text-slate-800 min-h-screen">
+<body class="min-h-screen">
 
-    <div id="app" class="max-w-4xl mx-auto min-h-screen flex flex-col">
+    <div id="app" class="max-w-6xl mx-auto min-h-screen flex flex-col">
         </div>
 
     <script>
-        // Data Structures
         const DATA = {
             vowels: [
                 { id: 'v1', char: 'അ' }, { id: 'v2', char: 'ആ' }, { id: 'v3', char: 'ഇ' },
@@ -60,225 +98,203 @@
             ]
         };
 
-        // App State
         let state = {
             view: 'welcome',
             category: null,
             currentLetterId: null,
             completedLetters: JSON.parse(localStorage.getItem('ml_completed')) || [],
-            brushColor: '#3b82f6',
-            brushSize: 15
+            brushColor: '#6366f1',
+            brushSize: 18
         };
 
-        const app = document.getElementById('app');
-
-        // Router / View Controller
-        function setView(view, params = {}) {
-            state.view = view;
-            Object.assign(state, params);
+        function setView(v, params = {}) {
+            state = { ...state, view: v, ...params };
             render();
             window.scrollTo(0, 0);
         }
 
-        function saveProgress(id) {
-            if (!state.completedLetters.includes(id)) {
-                state.completedLetters.push(id);
-                localStorage.setItem('ml_completed', JSON.stringify(state.completedLetters));
-            }
-        }
-
-        // --- Renderers ---
-
         function render() {
-            app.innerHTML = '';
-            if (state.view === 'welcome') renderWelcome();
-            else if (state.view === 'category') renderCategory();
-            else if (state.view === 'list') renderList();
-            else if (state.view === 'tracing') renderTracing();
+            const container = document.getElementById('app');
+            container.innerHTML = '';
+
+            if (state.view === 'welcome') {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-6 text-center h-screen">
+                        <h1 class="text-5xl md:text-7xl font-extrabold text-indigo-600 mb-4 animate-float tracking-tight">
+                            Let's Learn Malayalam Letters
+                        </h1>
+                        <h2 class="malayalam-text text-4xl md:text-6xl font-bold text-purple-500 mb-16 animate-float" style="animation-delay: 0.5s">
+                            മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം
+                        </h2>
+                        
+                        <button onclick="setView('category')" class="btn-modern text-2xl">
+                            <span class="en-text">Shall we Begin?</span>
+                            <span class="ml-text malayalam-text">തുടങ്ങാം?</span>
+                        </button>
+                    </div>
+                `;
+            } 
+            
+            else if (state.view === 'category') {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col items-center justify-center p-6 h-screen">
+                        <h2 class="text-3xl font-bold text-slate-700 mb-12">Choose your path</h2>
+                        <div class="flex flex-col md:flex-row gap-10">
+                            <button onclick="setView('list', {category: 'vowels'})" class="btn-modern text-2xl py-8 px-16">
+                                <span class="en-text">Vowels</span>
+                                <span class="ml-text malayalam-text">സ്വരാക്ഷരങ്ങൾ</span>
+                            </button>
+                            <button onclick="setView('list', {category: 'consonants'})" class="btn-modern text-2xl py-8 px-16">
+                                <span class="en-text">Consonants</span>
+                                <span class="ml-text malayalam-text">വ്യഞ്ജനാക്ഷരങ്ങൾ</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (state.view === 'list') {
+                const letters = DATA[state.category];
+                container.innerHTML = `
+                    <div class="p-8">
+                        <header class="flex items-center justify-between mb-12">
+                            <button onclick="setView('category')" class="p-3 bg-white rounded-2xl shadow-sm hover:bg-slate-50">
+                                <i data-lucide="arrow-left"></i>
+                            </button>
+                            <h2 class="text-3xl font-extrabold text-indigo-600 uppercase tracking-widest">${state.category}</h2>
+                            <div class="w-10"></div>
+                        </header>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                            ${letters.map(l => {
+                                const isDone = state.completedLetters.includes(l.id);
+                                return `
+                                    <div onclick="setView('tracing', {currentLetterId: '${l.id}'})" 
+                                         class="grid-card cursor-pointer aspect-square rounded-3xl flex items-center justify-center border-2 
+                                         ${isDone ? 'border-emerald-400 bg-emerald-50' : 'border-white'} shadow-xl">
+                                        <span class="text-6xl malayalam-text ${isDone ? 'text-emerald-600' : 'text-indigo-600'}">${l.char}</span>
+                                        ${isDone ? '<div class="absolute top-4 right-4 text-emerald-500"><i data-lucide="badge-check"></i></div>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            else if (state.view === 'tracing') {
+                renderTracingView(container);
+            }
+
             lucide.createIcons();
         }
 
-        function renderWelcome() {
-            app.innerHTML = `
-                <div class="flex-1 flex flex-col items-center justify-center text-center p-6">
-                    <h1 class="text-4xl md:text-6xl font-extrabold mb-2 text-blue-600">Let's Learn Malayalam Letters</h1>
-                    <h2 class="text-3xl md:text-5xl font-bold mb-12 text-slate-700">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
-                    
-                    <button onclick="setView('category')" class="group relative overflow-hidden bg-blue-600 text-white px-12 py-4 rounded-full text-2xl font-bold shadow-lg hover:scale-105 transition-all">
-                        <span class="inline-block group-hover:hidden">Shall We Begin?</span>
-                        <span class="hidden group-hover:inline-block">തുടങ്ങാം?</span>
-                    </button>
-                </div>
-            `;
-        }
-
-        function renderCategory() {
-            app.innerHTML = `
-                <div class="flex-1 flex flex-col items-center justify-center p-6">
-                    <h2 class="text-3xl font-bold mb-12">What would you like to learn?</h2>
-                    <div class="flex flex-col md:flex-row gap-8 w-full max-w-2xl">
-                        <button onclick="setView('list', {category: 'vowels'})" class="group flex-1 bg-white border-4 border-blue-400 p-10 rounded-3xl shadow-xl hover:bg-blue-400 hover:text-white transition-all text-3xl font-bold">
-                            <span class="group-hover:hidden">Vowels</span>
-                            <span class="hidden group-hover:inline-block">സ്വരാക്ഷരങ്ങൾ</span>
-                        </button>
-                        <button onclick="setView('list', {category: 'consonants'})" class="group flex-1 bg-white border-4 border-emerald-400 p-10 rounded-3xl shadow-xl hover:bg-emerald-400 hover:text-white transition-all text-3xl font-bold">
-                            <span class="group-hover:hidden">Consonants</span>
-                            <span class="hidden group-hover:inline-block">വ്യഞ്ജനാക്ഷരങ്ങൾ</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderList() {
-            const letters = DATA[state.category];
-            const title = state.category === 'vowels' ? 'Vowels / സ്വരാക്ഷരങ്ങൾ' : 'Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ';
-            
-            let gridHtml = letters.map(l => {
-                const isDone = state.completedLetters.includes(l.id);
-                return `
-                    <div onclick="setView('tracing', {currentLetterId: '${l.id}'})" 
-                         class="shining-ray relative cursor-pointer bg-white aspect-square flex items-center justify-center rounded-2xl shadow-md border-4 transition-all hover:scale-110 
-                         ${isDone ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200'}">
-                        <span class="text-5xl font-bold ${isDone ? 'text-emerald-700' : 'text-slate-700'}">${l.char}</span>
-                        ${isDone ? '<div class="absolute top-2 right-2 text-emerald-600"><i data-lucide="check-circle-2"></i></div>' : ''}
-                    </div>
-                `;
-            }).join('');
-
-            app.innerHTML = `
-                <header class="p-6 flex items-center justify-between">
-                    <button onclick="setView('category')" class="p-2 hover:bg-slate-200 rounded-full transition-all"><i data-lucide="arrow-left"></i></button>
-                    <h2 class="text-2xl font-bold">${title}</h2>
-                    <div class="w-10"></div>
-                </header>
-                <div class="p-6 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                    ${gridHtml}
-                </div>
-            `;
-        }
-
-        function renderTracing() {
-            const allLetters = DATA[state.category];
-            const letter = allLetters.find(l => l.id === state.currentLetterId);
+        function renderTracingView(container) {
+            const letter = DATA[state.category].find(l => l.id === state.currentLetterId);
             const isDone = state.completedLetters.includes(letter.id);
+            const all = DATA[state.category];
+            const isLast = all.indexOf(letter) === all.length - 1;
 
-            app.innerHTML = `
-                <div class="flex flex-col h-screen">
-                    <header class="p-4 flex items-center justify-between bg-white shadow-sm">
-                        <button onclick="setView('list')" class="flex items-center gap-2 text-slate-600"><i data-lucide="chevron-left"></i> Back</button>
-                        <h2 class="text-xl font-bold">Trace: ${letter.char}</h2>
-                        <button id="next-btn" class="${isDone ? '' : 'hidden'} bg-emerald-500 text-white px-6 py-2 rounded-full font-bold shadow-lg" onclick="handleNext()">
-                            ${allLetters.indexOf(letter) === allLetters.length -1 ? 'Finish' : 'Next'}
+            container.innerHTML = `
+                <div class="flex flex-col h-screen p-4 md:p-8">
+                    <header class="flex items-center justify-between mb-6 bg-white/50 p-4 rounded-3xl backdrop-blur-md">
+                        <button onclick="setView('list')" class="flex items-center gap-2 font-bold text-indigo-600">
+                            <i data-lucide="chevron-left"></i> Gallery
+                        </button>
+                        <h2 class="text-2xl font-black text-slate-800 malayalam-text">Trace: ${letter.char}</h2>
+                        <button id="next-btn" class="${isDone ? '' : 'hidden'} bg-emerald-500 text-white px-8 py-3 rounded-full font-bold shadow-lg transform hover:scale-105 transition-all" onclick="handleNext()">
+                            ${isLast ? 'Finish!' : 'Next Letter'}
                         </button>
                     </header>
 
-                    <div class="flex-1 flex flex-col md:flex-row">
-                        <div class="flex-1 relative bg-white flex items-center justify-center overflow-hidden p-4">
-                            <canvas id="tracing-canvas" class="z-10"></canvas>
+                    <div class="flex-1 flex flex-col md:flex-row gap-6">
+                        <div class="flex-1 bg-white rounded-[3rem] shadow-2xl relative flex items-center justify-center overflow-hidden border-8 border-white">
+                            <canvas id="tracing-canvas"></canvas>
                             <canvas id="ref-canvas" class="hidden"></canvas>
                             
-                            <div id="success-overlay" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm">
-                                <div class="text-emerald-500 scale-0 transition-transform duration-500" id="success-check">
-                                    <i data-lucide="check-circle" size="120"></i>
+                            <div id="success-overlay" class="hidden absolute inset-0 z-20 flex flex-col items-center justify-center bg-emerald-500/10">
+                                <div id="success-check" class="scale-0 transition-transform duration-500 bg-white p-6 rounded-full shadow-2xl text-emerald-500">
+                                    <i data-lucide="check" size="80"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="w-full md:w-64 bg-slate-100 p-6 flex md:flex-col gap-6 items-center border-t md:border-t-0 md:border-l border-slate-200">
-                            <div class="flex-1 md:w-full">
-                                <label class="text-sm font-bold text-slate-500 block mb-2">Color</label>
-                                <div class="flex gap-2 flex-wrap">
-                                    ${['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'].map(c => `
-                                        <div onclick="state.brushColor='${c}'" class="w-8 h-8 rounded-full cursor-pointer border-2 border-white shadow-sm" style="background:${c}"></div>
+                        <div class="w-full md:w-72 flex md:flex-col gap-4">
+                            <div class="flex-1 bg-white/80 backdrop-blur p-6 rounded-[2rem] shadow-lg">
+                                <label class="text-xs font-black uppercase text-indigo-400 mb-4 block tracking-tighter">Pen Color</label>
+                                <div class="grid grid-cols-4 gap-3">
+                                    ${['#6366f1', '#f43f5e', '#10b981', '#f59e0b'].map(c => `
+                                        <div onclick="state.brushColor='${c}'" class="w-full aspect-square rounded-2xl cursor-pointer border-4 border-transparent hover:border-indigo-200 transition-all shadow-inner" style="background:${c}"></div>
                                     `).join('')}
                                 </div>
                             </div>
-                            <div class="flex-1 md:w-full">
-                                <label class="text-sm font-bold text-slate-500 block mb-2">Size</label>
-                                <input type="range" min="10" max="40" value="${state.brushSize}" oninput="state.brushSize=this.value" class="w-full">
-                            </div>
-                            <button onclick="initCanvas()" class="flex items-center gap-2 bg-white border border-slate-300 px-4 py-2 rounded-lg hover:bg-slate-50">
-                                <i data-lucide="refresh-cw" size="18"></i> Retry
+                            
+                            <button onclick="initCanvas()" class="bg-white text-slate-600 font-bold p-6 rounded-[2rem] shadow-lg hover:bg-slate-50 flex flex-col items-center gap-2 transition-all">
+                                <i data-lucide="refresh-ccw"></i> Reset
                             </button>
                         </div>
                     </div>
                 </div>
             `;
-            
-            setTimeout(() => initCanvas(), 50);
+            setTimeout(initCanvas, 100);
         }
 
-        // --- Tracing Logic ---
-
-        let ctx, refCtx, canvas, refCanvas;
-        let drawing = false;
-        let totalPixels = 0;
-        let filledPixels = 0;
+        // --- Drawing Logic ---
+        let ctx, refCtx, canvas, refCanvas, drawing = false, totalPixels = 0;
 
         function initCanvas() {
             canvas = document.getElementById('tracing-canvas');
-            refCanvas = document.getElementById('ref-canvas');
             if(!canvas) return;
-
-            const size = Math.min(canvas.parentElement.offsetWidth, canvas.parentElement.offsetHeight) - 40;
+            refCanvas = document.getElementById('ref-canvas');
+            
+            const box = canvas.parentElement;
+            const size = Math.min(box.clientWidth, box.clientHeight) - 40;
             canvas.width = canvas.height = refCanvas.width = refCanvas.height = size;
             
-            ctx = canvas.getContext('2d');
-            refCtx = refCanvas.getContext('2d');
+            ctx = canvas.getContext('2d', { willReadFrequently: true });
+            refCtx = refCanvas.getContext('2d', { willReadFrequently: true });
 
             const letter = DATA[state.category].find(l => l.id === state.currentLetterId).char;
 
-            // Prepare Reference (the "Hitbox")
+            // Setup Reference
             refCtx.fillStyle = "black";
-            refCtx.font = `bold ${size * 0.8}px Arial`;
+            refCtx.font = `bold ${size * 0.7}px 'Noto Sans Malayalam'`;
             refCtx.textAlign = "center";
             refCtx.textBaseline = "middle";
             refCtx.fillText(letter, size/2, size/2);
 
-            // Draw Outline on Main Canvas
+            // Draw Outline
+            ctx.clearRect(0,0,size,size);
             ctx.strokeStyle = "#e2e8f0";
-            ctx.lineWidth = 2;
-            ctx.font = `bold ${size * 0.8}px Arial`;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 5]);
+            ctx.font = `bold ${size * 0.7}px 'Noto Sans Malayalam'`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.strokeText(letter, size/2, size/2);
+            ctx.setLineDash([]);
 
-            // Calculate total area for completion
-            const imgData = refCtx.getImageData(0, 0, size, size).data;
+            // Area calculation
+            const data = refCtx.getImageData(0,0,size,size).data;
             totalPixels = 0;
-            for(let i=3; i<imgData.length; i+=4) if(imgData[i] > 0) totalPixels++;
-            filledPixels = 0;
+            for(let i=3; i<data.length; i+=4) if(data[i]>0) totalPixels++;
 
-            // Events
-            canvas.addEventListener('mousedown', startDraw);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', endDraw);
-            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
-            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
-            canvas.addEventListener('touchend', endDraw);
+            canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; paint(e); };
+            window.onmouseup = window.ontouchend = () => { drawing = false; ctx.beginPath(); checkWin(); };
+            canvas.onmousemove = canvas.ontouchmove = paint;
         }
 
-        function startDraw(e) { drawing = true; draw(e); }
-        function endDraw() { 
-            drawing = false; 
-            ctx.beginPath();
-            checkCompletion();
-        }
-
-        function draw(e) {
-            if (!drawing) return;
+        function paint(e) {
+            if(!drawing) return;
             const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.pageX) - rect.left;
-            const y = (e.clientY || e.pageY) - rect.top;
+            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
 
-            // Boundary Check: Is current point inside the black reference?
-            const pixel = refCtx.getImageData(x, y, 1, 1).data;
-            if (pixel[3] > 0) { // Alpha > 0
+            const hit = refCtx.getImageData(x, y, 1, 1).data[3];
+            if(hit > 0) {
                 ctx.lineWidth = state.brushSize;
                 ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 ctx.strokeStyle = state.brushColor;
-
                 ctx.lineTo(x, y);
                 ctx.stroke();
                 ctx.beginPath();
@@ -286,51 +302,40 @@
             }
         }
 
-        function checkCompletion() {
-            const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            const refData = refCtx.getImageData(0, 0, canvas.width, canvas.height).data;
-            
+        function checkWin() {
+            const current = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+            const ref = refCtx.getImageData(0,0,canvas.width,canvas.height).data;
             let filled = 0;
-            for(let i=3; i<refData.length; i+=4) {
-                if(refData[i] > 0 && currentData[i] > 0) filled++;
+            for(let i=3; i<ref.length; i+=4) {
+                if(ref[i] > 0 && current[i] > 0) filled++;
             }
-
-            const percent = (filled / totalPixels) * 100;
-            if (percent > 80) triggerSuccess();
+            if((filled/totalPixels) > 0.85) {
+                if(!state.completedLetters.includes(state.currentLetterId)) {
+                    state.completedLetters.push(state.currentLetterId);
+                    localStorage.setItem('ml_completed', JSON.stringify(state.completedLetters));
+                }
+                showSuccess();
+            }
         }
 
-        function triggerSuccess() {
-            saveProgress(state.currentLetterId);
+        function showSuccess() {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#10b981'] });
             document.getElementById('success-overlay').classList.remove('hidden');
             document.getElementById('next-btn').classList.remove('hidden');
+            setTimeout(() => document.getElementById('success-check').style.transform = 'scale(1)', 10);
             
-            const check = document.getElementById('success-check');
-            setTimeout(() => check.style.transform = 'scale(1)', 50);
-
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-
-            // Solid Fill
-            const size = canvas.width;
+            const letter = DATA[state.category].find(l => l.id === state.currentLetterId).char;
             ctx.fillStyle = "#10b981";
-            ctx.fillText(DATA[state.category].find(l => l.id === state.currentLetterId).char, size/2, size/2);
+            ctx.fillText(letter, canvas.width/2, canvas.height/2);
         }
 
         function handleNext() {
-            const allLetters = DATA[state.category];
-            const currentIndex = allLetters.findIndex(l => l.id === state.currentLetterId);
-            
-            if (currentIndex < allLetters.length - 1) {
-                setView('tracing', { currentLetterId: allLetters[currentIndex + 1].id });
-            } else {
-                setView('category');
-            }
+            const all = DATA[state.category];
+            const idx = all.findIndex(l => l.id === state.currentLetterId);
+            if(idx < all.length - 1) setView('tracing', { currentLetterId: all[idx+1].id });
+            else setView('category');
         }
 
-        // Init
         render();
     </script>
 </body>
