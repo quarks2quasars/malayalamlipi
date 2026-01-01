@@ -3,295 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Malayalam Trace | Grid Perfect</title>
+    <title>Malayalam Trace | Final Grid Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+Malayalam:wght@700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #6366f1; --success: #10b981; }
-        html, body { margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); }
-        #app { height: 100%; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* Force body to be exactly the viewport size and center everything */
+        html, body { 
+            margin: 0; padding: 0; 
+            height: 100vh; width: 100vw; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #app {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+
         .malayalam-text { font-family: 'Noto Sans Malayalam', sans-serif; }
 
-        /* Buttons */
-        .btn-modern {
-            position: relative; background: white; color: var(--primary); font-weight: 800;
-            padding: 1.5rem 3.5rem; border-radius: 9999px; box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.3);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; border: none; min-width: 300px; cursor: pointer;
+        /* Grid specific styles to mirror your images */
+        .grid-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            margin-bottom: 12px;
         }
-        .btn-modern:hover { transform: scale(1.05); background: var(--primary); color: white; }
-        .btn-modern .ml-text { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); transition: top 0.4s; white-space: nowrap; }
-        .btn-modern .en-text { transition: transform 0.4s; display: inline-block; }
-        .btn-modern:hover .en-text { transform: translateY(-150%); }
-        .btn-modern:hover .ml-text { top: 50%; transform: translate(-50%, -50%); }
 
-        /* Grid Item Styling - Rectangular like your image */
+        /* Card dimensions based on image proportions */
         .letter-card {
-            width: 75px; height: 130px; background: white; border-radius: 12px; 
+            width: 70px; height: 120px;
+            background: white; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s ease; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid transparent;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 2px solid transparent; cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
         }
         @media (min-width: 1024px) { .letter-card { width: 90px; height: 160px; } }
-        .letter-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2); }
-        .letter-card.completed { border-color: var(--success); background: #f0fdf4; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .letter-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .letter-card.completed { border-color: var(--success); background: #f0fdf4; }
 
-        /* Tracing Interface */
-        .btn-side { background: white; color: #475569; font-weight: 700; padding: 1rem; border-radius: 1.25rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.2s ease; border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; width: 100%; }
-        .btn-side:hover { background: #f8fafc; color: var(--primary); }
-        #tracing-canvas { touch-action: none; background: white; border-radius: 2rem; }
-        .hidden { display: none !important; }
+        /* Tracing Interface Center Logic */
+        .tracing-container {
+            display: flex; width: 100%; height: 100%;
+            align-items: center; justify-content: space-between;
+            padding: 0 4rem;
+        }
+
+        .sidebar { width: 240px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .btn-modern {
+            background: white; color: var(--primary); font-weight: 800;
+            padding: 1.2rem 3rem; border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+            border: none; cursor: pointer; transition: all 0.3s;
+            min-width: 250px; text-align: center; font-size: 1.5rem;
+        }
+        .btn-modern:hover { transform: scale(1.05); background: var(--primary); color: white; }
+
+        #tracing-canvas { background: white; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
-    <div id="app"></div>
+<div id="app"></div>
 
-    <script>
-        // Data exactly matching your provided images
-        const DATA = {
-            vowels: [
-                ['അ', 'ആ', 'ഇ', 'ഈ', 'ഉ', 'ഊ', 'ഋ', 'എ'],
-                ['ഏ', 'ഐ', 'ഒ', 'ഓ', 'ഔ', 'അം', 'അഃ']
-            ],
-            consonants: [
-                ['ക', 'ഖ', 'ഗ', 'ഘ', 'ങ'],
-                ['ച', 'ഛ', 'ജ', 'ഝ', 'ഞ'],
-                ['ട', 'ഠ', 'ഡ', 'ഢ', 'ണ'],
-                ['ത', 'ഥ', 'ദ', 'ധ', 'ന'],
-                ['പ', 'ഫ', 'ബ', 'ഭ', 'മ'],
-                ['യ', 'ര', 'ല', 'വ', 'ശ'],
-                ['ഷ', 'സ', 'ഹ', 'ള', 'ഴ', 'റ']
-            ]
-        };
+<script>
+    const DATA = {
+        vowels: [
+            ['അ', 'ആ', 'ഇ', 'ഈ', 'ഉ', 'ഊ', 'ഋ', 'എ'],
+            ['ഏ', 'ഐ', 'ഒ', 'ഓ', 'ഔ', 'അം', 'അഃ']
+        ],
+        consonants: [
+            ['ക', 'ഖ', 'ഗ', 'ഘ', 'ങ'],
+            ['ച', 'ഛ', 'ജ', 'ഝ', 'ഞ'],
+            ['ട', 'ഠ', 'ഡ', 'ഢ', 'ണ'],
+            ['ത', 'ഥ', 'ദ', 'ധ', 'ന'],
+            ['പ', 'ഫ', 'ബ', 'ഭ', 'മ'],
+            ['യ', 'ര', 'ല', 'വ', 'ശ'],
+            ['ഷ', 'സ', 'ഹ', 'ള', 'ഴ', 'റ']
+        ]
+    };
 
-        let state = {
-            view: 'welcome',
-            category: null,
-            currentLetter: null,
-            completed: JSON.parse(localStorage.getItem('ml_trace_v6')) || [],
-            brushColor: '#6366f1',
-            brushSize: 15
-        };
+    let state = {
+        view: 'welcome',
+        category: null,
+        currentLetter: null,
+        completed: JSON.parse(localStorage.getItem('ml_trace_v7')) || [],
+        brushColor: '#6366f1',
+        brushSize: 15
+    };
 
-        function setView(v, params = {}) {
-            state = { ...state, view: v, ...params };
-            render();
+    function setView(v, params = {}) {
+        state = { ...state, view: v, ...params };
+        render();
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        app.innerHTML = '';
+
+        if (state.view === 'welcome') {
+            app.innerHTML = `
+                <div class="text-center">
+                    <h1 class="text-6xl font-black text-indigo-600 mb-4">Let's Learn Malayalam</h1>
+                    <h2 class="malayalam-text text-5xl text-purple-500 mb-12">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
+                    <button onclick="setView('category')" class="btn-modern">Shall we Begin?</button>
+                </div>
+            `;
         }
 
-        function render() {
-            const app = document.getElementById('app');
-            app.innerHTML = '';
-            app.className = "w-full h-full flex flex-col items-center justify-center";
-
-            if (state.view === 'welcome') {
-                app.innerHTML = `
-                    <div class="text-center space-y-6 px-4">
-                        <h1 class="text-5xl md:text-8xl font-black text-indigo-600 tracking-tight">Let's Learn Malayalam</h1>
-                        <h2 class="malayalam-text text-4xl md:text-7xl font-bold text-purple-500 pb-12">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
-                        <button onclick="setView('category')" class="btn-modern text-3xl">
-                            <span class="en-text">Shall we Begin?</span>
-                            <span class="ml-text malayalam-text">തുടങ്ങാം?</span>
-                        </button>
+        else if (state.view === 'category') {
+            app.innerHTML = `
+                <div class="text-center space-y-8">
+                    <h2 class="text-4xl font-bold text-slate-700">Choose a Category</h2>
+                    <div class="flex flex-col gap-6">
+                        <button onclick="setView('list', {category: 'vowels'})" class="btn-modern">Vowels / സ്വരാക്ഷരങ്ങൾ</button>
+                        <button onclick="setView('list', {category: 'consonants'})" class="btn-modern">Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ</button>
                     </div>
-                `;
-            }
-
-            else if (state.view === 'category') {
-                app.innerHTML = `
-                    <div class="text-center space-y-10 px-4">
-                        <h2 class="text-4xl font-bold text-slate-700">Choose a Category</h2>
-                        <div class="flex flex-col md:flex-row gap-8">
-                            <button onclick="setView('list', {category: 'vowels'})" class="btn-modern text-2xl">
-                                <span class="en-text">Vowels</span>
-                                <span class="ml-text malayalam-text">സ്വരാക്ഷരങ്ങൾ</span>
-                            </button>
-                            <button onclick="setView('list', {category: 'consonants'})" class="btn-modern text-2xl">
-                                <span class="en-text">Consonants</span>
-                                <span class="ml-text malayalam-text">വ്യഞ്ജനാക്ഷരങ്ങൾ</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-
-            else if (state.view === 'list') {
-                const title = state.category === 'vowels' ? 'Vowels / സ്വരാക്ഷരങ്ങൾ' : 'Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ';
-                app.innerHTML = `
-                    <div class="w-full h-full flex flex-col p-6 items-center justify-around">
-                        <h2 class="text-3xl md:text-4xl font-black text-indigo-600 malayalam-text text-center">${title}</h2>
-                        
-                        <div class="flex flex-col gap-3 md:gap-5 items-center">
-                            ${DATA[state.category].map(row => `
-                                <div class="flex flex-row justify-center gap-2 md:gap-4 w-full">
-                                    ${row.map(char => `
-                                        <div onclick="setView('tracing', {currentLetter: '${char}'})" 
-                                             class="letter-card ${state.completed.includes(char) ? 'completed' : ''}">
-                                            <span class="text-2xl md:text-5xl malayalam-text text-slate-700">${char}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <button onclick="setView('category')" class="btn-modern !py-3 !text-xl !min-w-[200px]">
-                             <span class="en-text">Back</span>
-                             <span class="ml-text malayalam-text">തിരികെ</span>
-                        </button>
-                    </div>
-                `;
-            }
-
-            else if (state.view === 'tracing') {
-                renderTracing();
-            }
-            lucide.createIcons();
+                </div>
+            `;
         }
 
-        function renderTracing() {
-            const char = state.currentLetter;
-            const isDone = state.completed.includes(char);
-            
-            document.getElementById('app').innerHTML = `
-                <div class="w-full h-full flex items-center justify-between px-6 md:px-16 relative">
+        else if (state.view === 'list') {
+            const title = state.category === 'vowels' ? 'Vowels / സ്വരാക്ഷരങ്ങൾ' : 'Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ';
+            app.innerHTML = `
+                <div class="flex flex-col items-center justify-between h-full py-10 w-full">
+                    <h2 class="text-4xl font-black text-indigo-600 malayalam-text">${title}</h2>
                     
-                    <div class="w-24 md:w-64 flex flex-col gap-8 bg-white/50 p-6 rounded-[2.5rem] backdrop-blur shadow-xl border border-white">
-                        <div>
-                            <label class="block text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Brush Size</label>
-                            <input type="range" min="5" max="40" value="${state.brushSize}" oninput="state.brushSize=parseInt(this.value)" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Ink Color</label>
-                            <div class="grid grid-cols-2 gap-3">
+                    <div class="w-full">
+                        ${DATA[state.category].map(row => `
+                            <div class="grid-row">
+                                ${row.map(char => `
+                                    <div onclick="setView('tracing', {currentLetter: '${char}'})" 
+                                         class="letter-card ${state.completed.includes(char) ? 'completed' : ''}">
+                                        <span class="text-4xl malayalam-text text-slate-800">${char}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <button onclick="setView('category')" class="btn-modern !text-lg !py-3">Back</button>
+                </div>
+            `;
+        }
+
+        else if (state.view === 'tracing') {
+            app.innerHTML = `
+                <div class="tracing-container">
+                    <div class="sidebar">
+                        <div class="bg-white p-6 rounded-3xl shadow-lg">
+                            <label class="text-xs font-bold text-slate-400 block mb-4">PEN SIZE</label>
+                            <input type="range" min="5" max="40" value="${state.brushSize}" class="w-full" oninput="state.brushSize=parseInt(this.value)">
+                            <label class="text-xs font-bold text-slate-400 block mt-8 mb-4">PEN COLOR</label>
+                            <div class="grid grid-cols-3 gap-2">
                                 ${['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#000000', '#a855f7'].map(c => `
-                                    <div onclick="state.brushColor='${c}'" class="w-8 h-8 md:w-10 md:h-10 rounded-xl cursor-pointer shadow border-2 border-white hover:scale-110 transition-transform" style="background:${c}"></div>
+                                    <div onclick="state.brushColor='${c}'" class="w-10 h-10 rounded-lg cursor-pointer border-2 border-white shadow-sm" style="background:${c}"></div>
                                 `).join('')}
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex-1 flex items-center justify-center relative h-full">
-                        <div class="relative shadow-2xl rounded-[2rem] overflow-hidden bg-white">
-                            <canvas id="tracing-canvas"></canvas>
-                        </div>
+                    <div class="relative flex-1 flex items-center justify-center">
+                        <canvas id="tracing-canvas"></canvas>
                         <canvas id="ref-canvas" class="hidden"></canvas>
-                        
-                        <div id="next-overlay" class="${isDone ? '' : 'hidden'} absolute bottom-12 animate-bounce">
-                             <button onclick="handleNext()" class="bg-emerald-500 text-white px-10 py-4 rounded-full font-bold shadow-2xl flex items-center gap-2 hover:bg-emerald-600">
-                                Next Letter <i data-lucide="arrow-right"></i>
-                             </button>
+                        <div id="next-overlay" class="absolute bottom-10 hidden">
+                             <button onclick="handleNext()" class="bg-emerald-500 text-white px-12 py-4 rounded-full font-bold shadow-xl animate-bounce">Next Letter</button>
                         </div>
                     </div>
 
-                    <div class="w-24 md:w-64 flex flex-col gap-4">
-                        <button onclick="setView('list')" class="btn-side">
-                            <i data-lucide="grid"></i>
-                            <span class="text-xs uppercase font-bold hidden md:block">Gallery</span>
-                        </button>
-                        <button onclick="initCanvas()" class="btn-side">
-                            <i data-lucide="refresh-ccw"></i>
-                            <span class="text-xs uppercase font-bold hidden md:block">Retry</span>
-                        </button>
+                    <div class="sidebar">
+                        <button onclick="setView('list')" class="btn-modern !text-lg !py-4 !min-w-full">Gallery</button>
+                        <button onclick="initCanvas()" class="btn-modern !text-lg !py-4 !min-w-full">Retry</button>
                     </div>
                 </div>
             `;
-            setTimeout(initCanvas, 100);
+            setTimeout(initCanvas, 50);
         }
+        lucide.createIcons();
+    }
 
-        let ctx, refCtx, canvas, refCanvas, drawing = false, totalPixels = 0;
+    let ctx, refCtx, canvas, refCanvas, drawing = false, totalPixels = 0;
 
-        function initCanvas() {
-            canvas = document.getElementById('tracing-canvas');
-            if(!canvas) return;
-            refCanvas = document.getElementById('ref-canvas');
-            
-            // Occupies 70% of screen height and stays centered
-            const size = Math.min(window.innerWidth * 0.5, window.innerHeight * 0.7);
-            canvas.width = canvas.height = refCanvas.width = refCanvas.height = size;
-            
-            ctx = canvas.getContext('2d', { willReadFrequently: true });
-            refCtx = refCanvas.getContext('2d', { willReadFrequently: true });
+    function initCanvas() {
+        canvas = document.getElementById('tracing-canvas');
+        if(!canvas) return;
+        refCanvas = document.getElementById('ref-canvas');
+        const size = Math.min(window.innerWidth * 0.5, window.innerHeight * 0.7);
+        canvas.width = canvas.height = refCanvas.width = refCanvas.height = size;
+        ctx = canvas.getContext('2d', { willReadFrequently: true });
+        refCtx = refCanvas.getContext('2d', { willReadFrequently: true });
 
-            const char = state.currentLetter;
+        const char = state.currentLetter;
+        refCtx.fillStyle = "black";
+        refCtx.font = `bold ${size * 0.75}px 'Noto Sans Malayalam'`;
+        refCtx.textAlign = "center";
+        refCtx.textBaseline = "middle";
+        refCtx.fillText(char, size/2, size/2);
 
-            // Collision Reference
-            refCtx.fillStyle = "black";
-            refCtx.font = `bold ${size * 0.75}px 'Noto Sans Malayalam'`;
-            refCtx.textAlign = "center";
-            refCtx.textBaseline = "middle";
-            refCtx.fillText(char, size/2, size/2);
+        ctx.clearRect(0,0,size,size);
+        ctx.strokeStyle = "#f1f5f9";
+        ctx.lineWidth = 4;
+        ctx.font = `bold ${size * 0.75}px 'Noto Sans Malayalam'`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.strokeText(char, size/2, size/2);
 
-            // Gray Outline Guide
-            ctx.clearRect(0,0,size,size);
-            ctx.strokeStyle = "#f1f5f9";
-            ctx.lineWidth = 4;
-            ctx.font = `bold ${size * 0.75}px 'Noto Sans Malayalam'`;
+        const data = refCtx.getImageData(0,0,size,size).data;
+        totalPixels = 0;
+        for(let i=3; i<data.length; i+=4) if(data[i]>0) totalPixels++;
+
+        canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; paint(e); };
+        window.onmouseup = window.ontouchend = () => { drawing = false; ctx.beginPath(); checkWin(); };
+        canvas.onmousemove = canvas.ontouchmove = (e) => { e.preventDefault(); paint(e); };
+    }
+
+    function paint(e) {
+        if(!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        if(refCtx.getImageData(x, y, 1, 1).data[3] > 0) {
+            ctx.lineWidth = state.brushSize;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = state.brushColor;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+    }
+
+    function checkWin() {
+        const current = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+        const ref = refCtx.getImageData(0,0,canvas.width,canvas.height).data;
+        let filled = 0;
+        for(let i=3; i<ref.length; i+=4) if(ref[i] > 0 && current[i] > 0) filled++;
+        
+        if((filled/totalPixels) > 0.8) {
+            if(!state.completed.includes(state.currentLetter)) {
+                state.completed.push(state.currentLetter);
+                localStorage.setItem('ml_trace_v7', JSON.stringify(state.completed));
+            }
+            confetti();
+            document.getElementById('next-overlay').classList.remove('hidden');
+            ctx.fillStyle = "#10b981";
+            ctx.font = `bold ${canvas.width * 0.75}px 'Noto Sans Malayalam'`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.strokeText(char, size/2, size/2);
-
-            const data = refCtx.getImageData(0,0,size,size).data;
-            totalPixels = 0;
-            for(let i=3; i<data.length; i+=4) if(data[i]>0) totalPixels++;
-
-            canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; paint(e); };
-            window.onmouseup = window.ontouchend = () => { if(drawing) { drawing = false; ctx.beginPath(); checkWin(); } };
-            canvas.onmousemove = canvas.ontouchmove = (e) => { e.preventDefault(); paint(e); };
+            ctx.fillText(state.currentLetter, canvas.width/2, canvas.height/2);
         }
+    }
 
-        function paint(e) {
-            if(!drawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-            const x = clientX - rect.left;
-            const y = clientY - rect.top;
+    function handleNext() {
+        const flat = [].concat(...DATA[state.category]);
+        const idx = flat.indexOf(state.currentLetter);
+        if(idx < flat.length - 1) setView('tracing', { currentLetter: flat[idx+1] });
+        else setView('list');
+    }
 
-            const hit = refCtx.getImageData(x, y, 1, 1).data[3];
-            if(hit > 0) {
-                ctx.lineWidth = state.brushSize;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = state.brushColor;
-                ctx.lineTo(x, y);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-            }
-        }
-
-        function checkWin() {
-            const current = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-            const ref = refCtx.getImageData(0,0,canvas.width,canvas.height).data;
-            let filled = 0;
-            for(let i=3; i<ref.length; i+=4) if(ref[i] > 0 && current[i] > 0) filled++;
-            
-            if((filled/totalPixels) > 0.82) {
-                if(!state.completed.includes(state.currentLetter)) {
-                    state.completed.push(state.currentLetter);
-                    localStorage.setItem('ml_trace_v6', JSON.stringify(state.completed));
-                }
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                document.getElementById('next-overlay').classList.remove('hidden');
-                
-                ctx.fillStyle = "#10b981";
-                ctx.font = `bold ${canvas.width * 0.75}px 'Noto Sans Malayalam'`;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(state.currentLetter, canvas.width/2, canvas.height/2);
-            }
-        }
-
-        function handleNext() {
-            const flat = [].concat(...DATA[state.category]);
-            const idx = flat.indexOf(state.currentLetter);
-            if(idx < flat.length - 1) setView('tracing', { currentLetter: flat[idx+1] });
-            else setView('list');
-        }
-
-        window.onresize = () => { if(state.view === 'tracing') initCanvas(); };
-        render();
-    </script>
+    render();
+</script>
 </body>
 </html>
