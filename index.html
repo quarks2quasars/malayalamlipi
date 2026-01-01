@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Malayalam Trace | Final Stabilized</title>
+    <title>Malayalam Trace | Final Optimized</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;800&family=Noto+Sans+Malayalam:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
@@ -20,7 +20,7 @@
         #app { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .malayalam-text { font-family: 'Noto Sans Malayalam', sans-serif; }
 
-        /* BUTTON ANIMATION FIXED */
+        /* BUTTON ANIMATION */
         .btn-modern {
             position: relative; background: white; color: #4f46e5; font-weight: 800;
             padding: 20px 50px; border-radius: 50px; font-size: 1.5rem;
@@ -36,12 +36,29 @@
         .btn-modern:hover .en-txt { transform: translateY(-100px); }
         .btn-modern:hover .ml-txt { transform: translateY(0); }
 
-        /* GRID LAYOUT */
-        .gallery-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; }
-        .grid-wrapper { display: flex; flex-direction: column; gap: 15px; }
-        .row { display: flex; flex-direction: row; gap: 12px; justify-content: center; }
+        /* SCROLLABLE GRID GALLERY */
+        .gallery-container { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        
+        .grid-scroll-area {
+            flex-grow: 1;
+            width: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            /* Thin scrollbar for modern look */
+            scrollbar-width: thin;
+            scrollbar-color: #4f46e5 transparent;
+        }
+        .grid-scroll-area::-webkit-scrollbar { width: 6px; }
+        .grid-scroll-area::-webkit-scrollbar-thumb { background-color: #4f46e5; border-radius: 10px; }
+
+        .row { display: flex; flex-direction: row; gap: 12px; justify-content: center; flex-wrap: nowrap; }
 
         .letter-card {
+            flex: 0 0 auto;
             width: 75px; height: 130px; background: white; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.08); border: 3px solid transparent; cursor: pointer; transition: all 0.2s;
@@ -51,29 +68,30 @@
         .letter-card.completed { border-color: #10b981; background: #f0fdf4; }
         .letter-card span { font-size: 2.5rem; }
 
-        /* TRACING SCREEN FIXED */
+        /* TRACING SCREEN */
         .tracing-view {
             width: 100%; height: 100%; display: grid;
             grid-template-columns: 280px 1fr 280px; align-items: center; padding: 0 40px;
         }
-        .sidebar { display: flex; flex-direction: column; gap: 20px; height: auto; }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; z-index: 10; }
         .tool-box { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         
         #canvas-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
-        canvas { background: white; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        canvas { background: white; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); cursor: crosshair; }
 
         .hidden { display: none !important; }
 
-        /* NEXT BUTTON OVERLAY FIXED */
+        /* NEXT BUTTON OVERLAY - No overlay background */
         #next-overlay {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 100;
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 50;
         }
         .btn-next {
             background: #10b981; color: white; padding: 18px 45px;
             border-radius: 50px; font-weight: 800; border: none; cursor: pointer;
             box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-size: 1.2rem;
+            transition: transform 0.2s;
         }
-        .btn-next:hover { background: #059669; transform: scale(1.05); transition: 0.2s; }
+        .btn-next:hover { background: #059669; transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -90,7 +108,7 @@
         view: 'welcome',
         category: null,
         currentLetter: null,
-        completed: JSON.parse(localStorage.getItem('ml_trace_v9')) || [],
+        completed: JSON.parse(localStorage.getItem('ml_trace_v10')) || [],
         brushColor: '#4f46e5',
         brushSize: 15
     };
@@ -138,8 +156,8 @@
         else if (state.view === 'list') {
             app.innerHTML = `
                 <div class="gallery-container">
-                    <h1 class="malayalam-text" style="font-size: 3rem; color: #4f46e5;">${state.category === 'vowels' ? 'സ്വരാക്ഷരങ്ങൾ' : 'വ്യഞ്ജനാക്ഷരങ്ങൾ'}</h1>
-                    <div class="grid-wrapper">
+                    <h1 class="malayalam-text" style="font-size: 3rem; color: #4f46e5; margin-bottom: 0;">${state.category === 'vowels' ? 'സ്വരാക്ഷരങ്ങൾ' : 'വ്യഞ്ജനാക്ഷരങ്ങൾ'}</h1>
+                    <div class="grid-scroll-area">
                         ${DATA[state.category].map(row => `
                             <div class="row">
                                 ${row.map(char => `
@@ -231,7 +249,6 @@
         totalPixels = 0;
         for(let i=3; i<data.length; i+=4) if(data[i]>0) totalPixels++;
 
-        // Important: Reset Next button on retry
         document.getElementById('next-overlay').classList.add('hidden');
 
         canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; paint(e); };
@@ -267,12 +284,14 @@
         if((filled/totalPixels) > 0.82) {
             if(!state.completed.includes(state.currentLetter)) {
                 state.completed.push(state.currentLetter);
-                localStorage.setItem('ml_trace_v9', JSON.stringify(state.completed));
+                localStorage.setItem('ml_trace_v10', JSON.stringify(state.completed));
             }
-            confetti({ origin: { y: 0.7 } });
+            // Next button appears instantly
             document.getElementById('next-overlay').classList.remove('hidden');
             
-            // Turn letter green without erasing controls
+            // Confetti follows immediately
+            confetti({ origin: { y: 0.7 } });
+            
             ctx.fillStyle = "#10b981";
             ctx.font = `bold ${canvas.width * 0.75}px 'Noto Sans Malayalam'`;
             ctx.textAlign = "center";
