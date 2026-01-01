@@ -3,77 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Malayalam Trace | Full Screen</title>
+    <title>Malayalam Trace | Interactive Learning</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Noto+Sans+Malayalam:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #6366f1; --success: #10b981; }
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Outfit', sans-serif; }
-        
-        body { background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); }
+        :root { --primary: #6366f1; --success: #10b981; --accent: #a855f7; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%); }
         .malayalam-text { font-family: 'Noto Sans Malayalam', sans-serif; }
 
         /* Floating Animation */
-        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
-        .animate-float { animation: float 4s ease-in-out infinite; }
-
-        /* Centering Container */
-        .viewport-center { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        .animate-float { animation: float 3s ease-in-out infinite; }
 
         /* Modern Button Styling */
+        .btn-action {
+            background: white; color: var(--primary); font-weight: 700;
+            padding: 1rem 2rem; border-radius: 1.5rem;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease; border: none; cursor: pointer;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(99, 102, 241, 0.3); background: var(--primary); color: white; }
+        
         .btn-modern {
             position: relative; background: white; color: var(--primary); font-weight: 800;
             padding: 1.5rem 3rem; border-radius: 9999px;
             box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.3);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            overflow: hidden; border: none; min-width: 280px; cursor: pointer;
+            overflow: hidden; border: none; min-width: 260px;
         }
-        .btn-modern:hover { transform: scale(1.1); background: var(--primary); color: white; }
+        .btn-modern:hover { transform: scale(1.05); background: var(--primary); color: white; }
         .btn-modern .ml-text { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); transition: top 0.4s; white-space: nowrap; }
         .btn-modern .en-text { transition: transform 0.4s; display: inline-block; }
         .btn-modern:hover .en-text { transform: translateY(-150%); }
         .btn-modern:hover .ml-text { top: 50%; transform: translate(-50%, -50%); }
 
-        /* Letter Card Design: Rectangular (Width = 0.5 Height) */
+        /* Grid Layout Styling */
         .letter-card {
-            width: 100px; height: 180px; 
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: all 0.3s ease; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            border: 2px solid white;
+            width: 70px; height: 120px; 
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid white;
         }
-        .letter-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2); }
-        .letter-card.completed {
-            border: 3px solid var(--success);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-            background: #f0fdf4;
-        }
+        @media (min-width: 768px) { .letter-card { width: 90px; height: 160px; } }
+        .letter-card:hover { transform: scale(1.1); z-index: 10; border-color: var(--primary); }
+        .letter-card.completed { border-color: var(--success); background: #f0fdf4; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
 
-        #tracing-canvas { touch-action: none; background: transparent; }
+        #tracing-canvas { touch-action: none; background: white; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); }
         .hidden { display: none !important; }
+
+        /* Range Input Styling */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: var(--primary); margin-top: -6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="app" class="w-full h-screen"></div>
+    <div id="app" class="w-full h-screen relative flex flex-col"></div>
 
     <script>
+        // Letter Arrays structured to match the images provided
         const DATA = {
-            vowels: [{id:'v1',char:'അ'},{id:'v2',char:'ആ'},{id:'v3',char:'ഇ'},{id:'v4',char:'ഈ'},{id:'v5',char:'ഉ'},{id:'v6',char:'ഊ'},{id:'v7',char:'ഋ'},{id:'v8',char:'എ'},{id:'v9',char:'ഏ'},{id:'v10',char:'ഐ'},{id:'v11',char:'ഒ'},{id:'v12',char:'ഓ'},{id:'v13',char:'ഔ'}],
-            consonants: [{id:'c1',char:'ക'},{id:'c2',char:'ഖ'},{id:'c3',char:'ഗ'},{id:'c4',char:'ഘ'},{id:'c5',char:'ങ'},{id:'c6',char:'ച'},{id:'c7',char:'ഛ'},{id:'c8',char:'ജ'},{id:'c9',char:'ഝ'},{id:'c10',char:'ഞ'}]
+            vowels: [
+                ['അ', 'ആ', 'ഇ', 'ഈ', 'ഉ', 'ഊ', 'ഋ', 'എ'],
+                ['ഏ', 'ഐ', 'ഒ', 'ഓ', 'ഔ', 'അം', 'അഃ']
+            ],
+            consonants: [
+                ['ക', 'ഖ', 'ഗ', 'ഘ', 'ങ'],
+                ['ച', 'ഛ', 'ജ', 'ഝ', 'ഞ'],
+                ['ട', 'ഠ', 'ഡ', 'ഢ', 'ണ'],
+                ['ത', 'ഥ', 'ദ', 'ധ', 'ന'],
+                ['പ', 'ഫ', 'ബ', 'ഭ', 'മ'],
+                ['യ', 'ര', 'ല', 'വ', 'ശ'],
+                ['ഷ', 'സ', 'ഹ', 'ള', 'ഴ', 'റ']
+            ]
         };
 
         let state = {
             view: 'welcome',
             category: null,
-            currentLetterId: null,
-            completedLetters: JSON.parse(localStorage.getItem('ml_trace_v3')) || [],
-            brushColor: '#6366f1'
+            currentLetter: null,
+            completed: JSON.parse(localStorage.getItem('ml_trace_final')) || [],
+            brushColor: '#6366f1',
+            brushSize: 15
         };
 
         function setView(v, params = {}) {
@@ -87,10 +103,10 @@
 
             if (state.view === 'welcome') {
                 app.innerHTML = `
-                    <div class="viewport-center px-4">
-                        <h1 class="text-5xl md:text-8xl font-extrabold text-indigo-600 mb-4 animate-float text-center">Let's Learn Malayalam</h1>
-                        <h2 class="malayalam-text text-4xl md:text-7xl font-bold text-purple-500 mb-16 animate-float text-center" style="animation-delay: 0.5s">മലയാളം പഠിക്കാം</h2>
-                        <button onclick="setView('category')" class="btn-modern text-3xl">
+                    <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                        <h1 class="text-5xl md:text-7xl font-extrabold text-indigo-600 mb-2 animate-float">Let's Learn Malayalam Letters</h1>
+                        <h2 class="malayalam-text text-4xl md:text-6xl font-bold text-purple-500 mb-12 animate-float" style="animation-delay: 0.3s">മലയാളം അക്ഷരങ്ങൾ പഠിക്കാം</h2>
+                        <button onclick="setView('category')" class="btn-modern text-2xl">
                             <span class="en-text">Shall we Begin?</span>
                             <span class="ml-text malayalam-text">തുടങ്ങാം?</span>
                         </button>
@@ -100,8 +116,8 @@
 
             else if (state.view === 'category') {
                 app.innerHTML = `
-                    <div class="viewport-center gap-10 px-4">
-                        <h2 class="text-3xl font-bold text-slate-700 mb-4">Pick a Category</h2>
+                    <div class="flex-1 flex flex-col items-center justify-center gap-8 p-6">
+                        <h2 class="text-3xl font-bold text-slate-700">What would you like to learn?</h2>
                         <button onclick="setView('list', {category: 'vowels'})" class="btn-modern text-2xl">
                             <span class="en-text">Vowels</span>
                             <span class="ml-text malayalam-text">സ്വരാക്ഷരങ്ങൾ</span>
@@ -115,25 +131,32 @@
             }
 
             else if (state.view === 'list') {
+                const title = state.category === 'vowels' ? 'Vowels / സ്വരാക്ഷരങ്ങൾ' : 'Consonants / വ്യഞ്ജനാക്ഷരങ്ങൾ';
+                const rows = DATA[state.category];
+                
                 app.innerHTML = `
-                    <div class="h-screen flex flex-col p-6 overflow-y-auto">
-                        <header class="flex items-center justify-between mb-10 w-full max-w-5xl mx-auto">
-                            <button onclick="setView('category')" class="p-4 bg-white rounded-full shadow-lg"><i data-lucide="arrow-left"></i></button>
-                            <h2 class="text-3xl font-black text-indigo-600 uppercase tracking-tighter">${state.category}</h2>
-                            <div class="w-12"></div>
+                    <div class="flex-1 flex flex-col p-4 md:p-8 overflow-hidden">
+                        <header class="text-center mb-6">
+                            <h2 class="text-3xl font-extrabold text-indigo-600 malayalam-text">${title}</h2>
                         </header>
-                        <div class="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto pb-10">
-                            ${DATA[state.category].map(l => {
-                                const isDone = state.completedLetters.includes(l.id);
-                                return `
-                                    <div onclick="setView('tracing', {currentLetterId: '${l.id}'})" 
-                                         class="letter-card ${isDone ? 'completed' : ''}">
-                                        <span class="text-5xl malayalam-text ${isDone ? 'text-emerald-600' : 'text-slate-700'}">${l.char}</span>
-                                        ${isDone ? '<div class="mt-4 text-emerald-500"><i data-lucide="check-circle-2"></i></div>' : ''}
-                                    </div>
-                                `;
-                            }).join('')}
+                        <div class="flex-1 flex flex-col justify-center items-center gap-4">
+                            ${rows.map(row => `
+                                <div class="flex justify-center gap-2 md:gap-4">
+                                    ${row.map(char => {
+                                        const isDone = state.completed.includes(char);
+                                        return `
+                                            <div onclick="setView('tracing', {currentLetter: '${char}'})" 
+                                                 class="letter-card ${isDone ? 'completed' : ''}">
+                                                <span class="text-3xl md:text-5xl malayalam-text ${isDone ? 'text-emerald-600' : 'text-slate-700'}">${char}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            `).join('')}
                         </div>
+                        <footer class="mt-6 flex justify-center">
+                            <button onclick="setView('category')" class="btn-action"><i data-lucide="arrow-left"></i> Back to Categories</button>
+                        </footer>
                     </div>
                 `;
             }
@@ -145,40 +168,41 @@
         }
 
         function renderTracing() {
-            const letter = DATA[state.category].find(l => l.id === state.currentLetterId);
-            const isDone = state.completedLetters.includes(letter.id);
-            const isLast = DATA[state.category].indexOf(letter) === DATA[state.category].length - 1;
+            const char = state.currentLetter;
+            const isDone = state.completed.includes(char);
 
             app.innerHTML = `
-                <div class="h-screen w-screen flex flex-col relative overflow-hidden bg-white">
-                    <header class="absolute top-0 left-0 right-0 z-50 p-6 flex justify-between items-center bg-white/80 backdrop-blur-md">
-                        <button onclick="setView('list')" class="flex items-center gap-2 font-bold text-slate-500">
-                            <i data-lucide="x-circle"></i> Quit
-                        </button>
-                        <div id="next-container" class="${isDone ? '' : 'hidden'} animate-bounce">
-                            <button onclick="handleNext()" class="bg-emerald-500 text-white px-8 py-3 rounded-full font-bold shadow-xl">
-                                ${isLast ? 'Finish' : 'Next Letter'}
-                            </button>
+                <div class="flex-1 flex flex-row items-center justify-between p-4 md:p-10 relative">
+                    <div class="w-20 md:w-64 flex flex-col gap-8 bg-white/50 p-6 rounded-[2rem] backdrop-blur-md shadow-xl z-10">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-4">Size</label>
+                            <input type="range" min="5" max="40" value="${state.brushSize}" oninput="state.brushSize=parseInt(this.value)">
                         </div>
-                    </header>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 mb-4">Color</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                ${['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#000000', '#a855f7'].map(c => `
+                                    <div onclick="state.brushColor='${c}'" class="w-8 h-8 md:w-10 md:h-10 rounded-xl cursor-pointer shadow-md border-2 border-white" style="background:${c}"></div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
 
-                    <main class="flex-1 flex flex-col items-center justify-center p-4">
-                        <div class="relative w-full h-full flex items-center justify-center">
-                            <canvas id="tracing-canvas"></canvas>
-                            <canvas id="ref-canvas" class="hidden"></canvas>
+                    <div class="flex-1 flex items-center justify-center px-4 md:px-10 h-full relative">
+                        <canvas id="tracing-canvas"></canvas>
+                        <canvas id="ref-canvas" class="hidden"></canvas>
+                        
+                        <div id="next-overlay" class="${isDone ? '' : 'hidden'} absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce">
+                             <button onclick="handleNext()" class="btn-action !bg-emerald-500 !text-white !px-12 !py-4 !text-xl shadow-2xl">
+                                Next Letter <i data-lucide="arrow-right"></i>
+                             </button>
                         </div>
-                    </main>
+                    </div>
 
-                    <footer class="p-6 bg-slate-50 flex justify-center gap-6 border-t border-slate-100">
-                        <button onclick="initCanvas()" class="p-4 bg-white rounded-2xl shadow-md text-slate-500 hover:text-indigo-600 transition-colors">
-                            <i data-lucide="refresh-cw"></i>
-                        </button>
-                        <div class="flex gap-3">
-                            ${['#6366f1', '#f43f5e', '#10b981'].map(c => `
-                                <div onclick="state.brushColor='${c}'" class="w-12 h-12 rounded-full cursor-pointer border-4 border-white shadow-md" style="background:${c}"></div>
-                            `).join('')}
-                        </div>
-                    </footer>
+                    <div class="w-20 md:w-64 flex flex-col gap-4 z-10">
+                        <button onclick="setView('list')" class="btn-action !bg-white/80"><i data-lucide="arrow-left"></i> <span class="hidden md:inline">Back</span></button>
+                        <button onclick="initCanvas()" class="btn-action !bg-white/80"><i data-lucide="refresh-cw"></i> <span class="hidden md:inline">Retry</span></button>
+                    </div>
                 </div>
             `;
             setTimeout(initCanvas, 100);
@@ -191,39 +215,37 @@
             if(!canvas) return;
             refCanvas = document.getElementById('ref-canvas');
             
-            // Layout: Occupy 75% of the height or width
-            const parent = canvas.parentElement;
-            const size = Math.min(parent.clientWidth * 0.9, parent.clientHeight * 0.75);
+            // Layout: Centralized, occupying 60-75% of screen
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth * 0.9, container.clientHeight * 0.75);
             canvas.width = canvas.height = refCanvas.width = refCanvas.height = size;
             
             ctx = canvas.getContext('2d', { willReadFrequently: true });
             refCtx = refCanvas.getContext('2d', { willReadFrequently: true });
 
-            const letterChar = DATA[state.category].find(l => l.id === state.currentLetterId).char;
+            const char = state.currentLetter;
 
-            // 1. Setup Hitbox (Reference)
+            // Hidden Reference for collision detection
             refCtx.fillStyle = "black";
-            refCtx.font = `bold ${size * 0.8}px 'Noto Sans Malayalam'`;
+            refCtx.font = `bold ${size * 0.7}px 'Noto Sans Malayalam'`;
             refCtx.textAlign = "center";
             refCtx.textBaseline = "middle";
-            refCtx.fillText(letterChar, size/2, size/2);
+            refCtx.fillText(char, size/2, size/2);
 
-            // 2. Draw Visible Trace Outline
+            // Visible Outline
             ctx.clearRect(0,0,size,size);
-            ctx.strokeStyle = "#cbd5e1"; // Light gray visible outline
-            ctx.lineWidth = 4;
-            ctx.lineJoin = "round";
-            ctx.font = `bold ${size * 0.8}px 'Noto Sans Malayalam'`;
+            ctx.strokeStyle = "#e2e8f0";
+            ctx.lineWidth = 2;
+            ctx.font = `bold ${size * 0.7}px 'Noto Sans Malayalam'`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.strokeText(letterChar, size/2, size/2);
+            ctx.strokeText(char, size/2, size/2);
 
-            // Calculate goal
+            // Calculate total target area
             const data = refCtx.getImageData(0,0,size,size).data;
             totalPixels = 0;
             for(let i=3; i<data.length; i+=4) if(data[i]>0) totalPixels++;
 
-            // Painting Events
             canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; paint(e); };
             window.onmouseup = window.ontouchend = () => { if(drawing) { drawing = false; ctx.beginPath(); checkWin(); } };
             canvas.onmousemove = canvas.ontouchmove = (e) => { e.preventDefault(); paint(e); };
@@ -237,10 +259,10 @@
             const x = clientX - rect.left;
             const y = clientY - rect.top;
 
-            // Constrain drawing within letter
+            // Draw only if inside the black pixels of refCtx
             const hit = refCtx.getImageData(x, y, 1, 1).data[3];
             if(hit > 0) {
-                ctx.lineWidth = 25; // Thick brush for easier filling
+                ctx.lineWidth = state.brushSize;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.strokeStyle = state.brushColor;
@@ -257,27 +279,28 @@
             let filled = 0;
             for(let i=3; i<ref.length; i+=4) if(ref[i] > 0 && current[i] > 0) filled++;
             
-            if((filled/totalPixels) > 0.8) {
-                if(!state.completedLetters.includes(state.currentLetterId)) {
-                    state.completedLetters.push(state.currentLetterId);
-                    localStorage.setItem('ml_trace_v3', JSON.stringify(state.completedLetters));
+            if((filled/totalPixels) > 0.82) {
+                if(!state.completed.includes(state.currentLetter)) {
+                    state.completed.push(state.currentLetter);
+                    localStorage.setItem('ml_trace_final', JSON.stringify(state.completed));
                 }
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                document.getElementById('next-container').classList.remove('hidden');
+                document.getElementById('next-overlay').classList.remove('hidden');
                 
-                // Final solid fill
+                // Solid Fill Effect
                 ctx.fillStyle = "#10b981";
-                ctx.font = `bold ${canvas.width * 0.8}px 'Noto Sans Malayalam'`;
+                ctx.font = `bold ${canvas.width * 0.7}px 'Noto Sans Malayalam'`;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(DATA[state.category].find(l => l.id === state.currentLetterId).char, canvas.width/2, canvas.height/2);
+                ctx.fillText(state.currentLetter, canvas.width/2, canvas.height/2);
             }
         }
 
         function handleNext() {
-            const list = DATA[state.category];
-            const idx = list.findIndex(l => l.id === state.currentLetterId);
-            if(idx < list.length - 1) setView('tracing', { currentLetterId: list[idx+1].id });
+            // Find current letter in flat array to get next
+            const flat = [].concat(...DATA[state.category]);
+            const idx = flat.indexOf(state.currentLetter);
+            if(idx < flat.length - 1) setView('tracing', { currentLetter: flat[idx+1] });
             else setView('list');
         }
 
